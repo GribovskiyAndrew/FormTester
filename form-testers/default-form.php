@@ -6,28 +6,36 @@ use Facebook\WebDriver\WebDriverExpectedCondition;
 
 function CFLeadsForm($webDriver, $link) {
 
-    try {
-
         $webDriver->get($link);
 
-        $form = $webDriver->wait(20)->until(
-            WebDriverExpectedCondition::presenceOfElementLocated(
-                WebDriverBy::className('cf-lead')
-            )
-        );
+    $form = $webDriver->wait(20)->until(
+        WebDriverExpectedCondition::presenceOfElementLocated(
+            WebDriverBy::xpath('//form[@class="cf-lead" and not(ancestor::div[contains(@class, "modal") or contains(@class, "modal-contact-us")])]')
+        )
+    );
 
-        $name = $form->findElement(WebDriverBy::cssSelector('input[type="text"][id*="cf_lead_first_name"], input[type="text"][name="cf_lead_first_name"]'));
-        $phone = $form->findElement(WebDriverBy::cssSelector('input[type="text"][id*="cf_lead_phone"], input[type="text"][name="cf_lead_phone"]'));
-        $email = $form->findElement(WebDriverBy::cssSelector('input[type="email"][id*="cf_lead_email"], input[type="email"][name="cf_lead_email"]'));
-        $message = $form->findElement(WebDriverBy::cssSelector('textarea[id*="cf_lead_message"], textarea[name="cf_lead_message"]'));
-        $button = $form->findElement(WebDriverBy::cssSelector('a[id*="cf_lead_send"], a[name="cf_lead_send"]'));
+    $name = $form->findElement(WebDriverBy::cssSelector('input[type="text"][id*="cf_lead_first_name"], input[type="text"][name="cf_lead_first_name"]'));
+    $phone = $form->findElement(WebDriverBy::cssSelector('input[type="text"][id*="cf_lead_phone"], input[type="text"][name="cf_lead_phone"], input[type="number"][id*="cf_lead_phone"]'));
+    $email = $form->findElement(WebDriverBy::cssSelector('input[type="email"][id*="cf_lead_email"], input[type="email"][name="cf_lead_email"]'));
+    $age = '';
+    $message = $form->findElement(WebDriverBy::cssSelector('textarea[id*="cf_lead_message"], textarea[name="cf_lead_message"], input[id="cf_lead_message"]'));
+    //$button = $form->findElement(WebDriverBy::cssSelector('a[id*="cf_lead_send"], a[name="cf_lead_send"]'));
 
-        $name->sendKeys('');
+    $elements = $webDriver->findElements(WebDriverBy::cssSelector('input[type="number"][id*="cf_lead_age"]'));
+
+    if (count($elements) > 0)
+        $age = $webDriver->findElement(WebDriverBy::cssSelector('input[type="number"][id*="cf_lead_age"]'));
+
+    $name->sendKeys('');
         $phone->sendKeys('8434');
         $email->sendKeys('youremail@.com');
         $message->sendKeys('Your message');
+        if($age !== '')
+            $age->sendKeys('12');
 
-        $button->click();
+        //$button->click();
+
+    $webDriver->executeScript('document.querySelector("[id=\"cf_lead_send\"], [name=\"cf_lead_send\"]").click()');
 
         $nameStyle = $name->getAttribute('style');
         $phoneStyle = $phone->getAttribute('style');
@@ -67,7 +75,9 @@ function CFLeadsForm($webDriver, $link) {
         $email->sendKeys('test@test.com');
         $message->sendKeys('Your message');
 
-        $button->click();
+
+        //$button->click();
+    $webDriver->executeScript('document.querySelector("[id=\"cf_lead_send\"], [name=\"cf_lead_send\"]").click()');
 
         $webDriver->wait(10)->until(WebDriverExpectedCondition::urlContains('thank-you'));
 
@@ -79,10 +89,4 @@ function CFLeadsForm($webDriver, $link) {
             print_r("Unsuccessful verification of the form on the site: " . $link . "\n");
             return false;
         }
-} catch (Throwable $e) {
-
-    print_r("Error: " . $e->getMessage() . "\n");
-    return false;
-}
-
 }
